@@ -1,0 +1,37 @@
+!pip install numpy==1.22.0
+!pip install geopandas mapclassify
+!pip install keplergl
+!pip install osmnx
+
+from keplergl import KeplerGl
+import osmnx as ox
+
+from google.colab import output
+output.enable_custom_widget_manager()
+
+TERRITORY_NAME = 'Екатеринбург'
+territory = ox.geocode_to_gdf(TERRITORY_NAME)
+territory.explore(tiles="CartoDB positron")
+
+tags = {'admin_level' : '9'}
+boundaries = ox.geometries_from_polygon(territory.unary_union, tags)
+boundaries.head()
+
+boundaries.explore(tiles="CartoDB positron")
+
+DISTRICT_NAME = 'Октябрьский район, Екатеринбург'
+district = ox.geocode_to_gdf(DISTRICT_NAME)
+tags = {'building': True}  
+buildings = ox.geometries_from_polygon(district.unary_union, tags)
+buildings.head()
+
+buildings.explore(tiles="CartoDB positron")
+
+buildings.reset_index(inplace=True)
+buildings.head()
+
+map = KeplerGl(height=500)
+map.add_data(data=territory.copy(), name='Граница Екатеринбурга')
+map.add_data(data=boundaries.copy(), name='Границы районов Екатеринбурга')
+map.add_data(data=buildings.copy(), name='Здания Октябрьского района')
+map
